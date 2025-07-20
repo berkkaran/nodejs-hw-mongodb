@@ -25,6 +25,13 @@ const setupServer = () => {
   app.use('/auth', authRouter);
   app.use('/contacts', contactsRouter);
 
+  app.get('/', (req, res) => {
+    res.json({
+      status: 200,
+      message: 'Hello world!',
+    });
+  });
+
   app.use('/uploads', express.static(UPLOAD_DIR));
 
   app.use(notFoundHandler);
