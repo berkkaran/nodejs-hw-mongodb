@@ -28,7 +28,7 @@ const setupServer = () => {
   app.get('/', (req, res) => {
     res.json({
       status: 200,
-      message: 'Hello world!',
+      message: 'Welcome to the Contacts APP',
     });
   });
 
