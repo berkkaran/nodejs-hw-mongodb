@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Allen Raymond",
+    "phoneNumber": "323-432-6789",
+    "email": "allen.raymond@example.com",
+    "isFavourite": false,
+    "contactType": "work"
+  },
+  {
+    "name": "Chaim Lewis",
+    "phoneNumber": "345-678-9012",
+    "email": "chaim.lewis@example.com",
+    "isFavourite": true,
+    "contactType": "home"
+  },
+  {
+    "name": "Kennedy Lane",
+    "phoneNumber": "456-789-0123",
+    "email": "kennedy.lane@example.com",
+    "isFavourite": false,
+    "contactType": "personal"
+  },
+  {
+    "name": "Mango",
+    "phoneNumber": "567-890-1234",
+    "email": "mango@example.com",
+    "isFavourite": true,
+    "contactType": "work"
+  }
+]
