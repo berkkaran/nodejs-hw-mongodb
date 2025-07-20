@@ -1,29 +1,43 @@
-import { ContactCollection } from '../db/models/contact.js';
+import { Contact } from '../db/models/contact.js';
 
-export const getAllcontacts = async () => {
-  const contacts = await ContactCollection.find();
+export const getAllContacts = async (userId) => {
+  const contacts = await Contact.find({ userId });
   return contacts;
 };
 
-export const getContactById = async (id) => {
-  const contact = await ContactCollection.findById(id);
+export const getContactById = async (contactId, userId) => {
+  const contact = await Contact.findOne({ _id: contactId, userId });
   return contact;
 };
 
-export const createContact = async (payload) => {
-  const contact = await ContactCollection.create(payload);
+export const createContact = async (payload, userId) => {
+  const contact = await Contact.create({ ...payload, userId });
   return contact;
 };
 
-export const updateContact = async (id, payload, options = {}) => {
-  const result = await ContactCollection.findByIdAndUpdate(id, payload, {
-    new: true,
-    ...options,
-  });
-  return result;
+export const deleteContact = async (contactId, userId) => {
+  const contact = await Contact.findOneAndDelete({ _id: contactId, userId });
+  return contact;
 };
 
-export const deleteContact = async (id) => {
-  const result = await ContactCollection.findByIdAndDelete(id);
-  return result;
+export const upsertContact = async (contactId, userId, payload, options = {}) => {
+    const result = await Contact.findOneAndUpdate(
+        { _id: contactId, userId },
+        payload,
+        {
+            new: true,
+            runValidators: true,
+            ...options,
+        }
+    );
+    return result;
+};
+
+export const updateContact = async (contactId, userId, payload) => {
+  const contact = await Contact.findOneAndUpdate(
+    { _id: contactId, userId },
+    payload,
+    { new: true }
+  );
+  return contact;
 };
