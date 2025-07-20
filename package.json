@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create-env-example": "echo \"# ===============================================================\" > .env.example && echo \"#                ÖRNEK ORTAM DEĞİŞKENLERİ\" >> .env.example && echo \"# ===============================================================\" >> .env.example && echo \"#\" >> .env.example && echo \"# Bu dosya, projenin çalışması için gerekli olan ortam değişkenleri\" >> .env.example && echo \"# için bir şablondur. Bu dosyayı kopyalayıp adını .env olarak\" >> .env.example && echo \"# değiştirin ve ardından aşağıda istenen değerleri kendi\" >> .env.example && echo \"# bilgilerinizle doldurun.\" >> .env.example && echo \"#\" >> .env.example && echo \"# ÖNEMLİ: Gerçek .env dosyası ASLA Git'e gönderilmemelidir.\" >> .env.example && echo \"# ===============================================================\" >> .env.example && echo \"\" >> .env.example && echo \"\" >> .env.example && echo \"# --- Sunucu Ayarları ---\" >> .env.example && echo \"# Uygulamanın çalışacağı port numarası.\" >> .env.example && echo \"PORT=3000\" >> .env.example && echo \"\" >> .env.example && echo \"\" >> .env.example && echo \"# --- Veritabanı Ayarları (MongoDB) ---\" >> .env.example && echo \"# MongoDB Atlas kullanıcı adınız.\" >> .env.example && echo \"MONGODB_USER=your_mongodb_username\" >> .env.example && echo \"\" >> .env.example && echo \"# MongoDB kullanıcınızın şifresi.\" >> .env.example && echo \"MONGODB_PASSWORD=your_mongodb_password\" >> .env.example && echo \"\" >> .env.example && echo \"# MongoDB Atlas cluster adresiniz. (Örn: cluster0.xyz.mongodb.net)\" >> .env.example && echo \"MONGODB_URL=your_mongodb_cluster_url\" >> .env.example && echo \"\" >> .env.example && echo \"# Cluster üzerinde kullanılacak veritabanının adı.\" >> .env.example && echo \"MONGODB_DB=your_database_name\" >> .env.example && echo \"\" >> .env.example && echo \"\" >> .env.example && echo \"# --- Güvenlik Ayarları (JWT) ---\" >> .env.example && echo \"# JSON Web Token (JWT) oluşturmak ve doğrulamak için kullanılacak\" >> .env.example && echo \"# gizli anahtar. Uzun ve tahmin edilmesi zor bir metin olmalıdır.\" >> .env.example && echo \"JWT_SECRET=your_super_secret_and_random_key_here\" >> .env.example"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +16,8 @@
     "@eslint/js": "^9.31.0",
     "eslint": "^9.31.0",
     "globals": "^16.3.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "pino-pretty": "^13.0.0"
   },
   "dependencies": {
     "acorn": "^8.15.0",
@@ -25,6 +27,7 @@
     "anymatch": "^3.1.3",
     "argparse": "^2.0.1",
     "balanced-match": "^1.0.2",
+    "bcrypt": "^6.0.0",
     "binary-extensions": "^2.3.0",
     "brace-expansion": "^1.1.12",
     "braces": "^3.0.3",
@@ -34,6 +37,7 @@
     "color-convert": "^2.0.1",
     "color-name": "^1.1.4",
     "concat-map": "^0.0.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cross-spawn": "^7.0.6",
     "debug": "^4.4.1",
@@ -47,7 +51,7 @@
     "esrecurse": "^4.3.0",
     "estraverse": "^5.3.0",
     "esutils": "^2.0.3",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
     "fast-deep-equal": "^3.1.3",
     "fast-json-stable-stringify": "^2.1.0",
     "fast-levenshtein": "^2.0.6",
@@ -68,10 +72,12 @@
     "is-glob": "^4.0.3",
     "is-number": "^7.0.0",
     "isexe": "^2.0.0",
+    "joi": "^17.13.3",
     "js-yaml": "^4.1.0",
     "json-buffer": "^3.0.1",
     "json-schema-traverse": "^0.4.1",
     "json-stable-stringify-without-jsonify": "^1.0.1",
+    "jsonwebtoken": "^9.0.2",
     "keyv": "^4.5.4",
     "levn": "^0.4.1",
     "locate-path": "^6.0.0",
