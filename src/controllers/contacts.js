@@ -8,12 +8,24 @@ import {
 import createHttpError from 'http-errors';
 
 export const getContactsController = async (req, res) => {
-  const contacts = await getAllcontacts();
+  const { page = 1, perPage = 10 } = req.query;
+  const { data, totalItems } = await getAllcontacts(page, perPage);
+  const totalPages = Math.ceil(totalItems / perPage);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < totalPages;
 
   res.json({
     status: 200,
     message: 'Successfully found contacts!',
-    data: contacts,
+    data: {
+      data,
+      page: Number(page),
+      perPage: Number(perPage),
+      totalItems,
+      totalPages,
+      hasPreviousPage,
+      hasNextPage,
+    },
   });
 };
 
