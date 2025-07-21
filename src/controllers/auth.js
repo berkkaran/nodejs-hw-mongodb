@@ -1,4 +1,3 @@
-
 import {
   registerUser,
   loginUser,
@@ -7,6 +6,7 @@ import {
 } from '../services/auth.js';
 
 import { THIRTY_DAYS } from '../constants/index.js';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const setupResponse = (res, session) => {
   res.cookie('refreshToken', session.refreshToken, {
@@ -19,23 +19,30 @@ const setupResponse = (res, session) => {
   });
 };
 
-export const registerUserController = async (req, res) => {
+const registerUserController = async (req, res) => {
   const user = await registerUser(req.body);
 
   res.status(201).json({
     status: 201,
     message: 'Successfully registered a user!',
-    data: {
-      name: user.name,
-      email: user.email,
-    },
+    data: user,
   });
 };
 
-export const loginUserController = async (req, res) => {
+export const registerUserCtrl = ctrlWrapper(registerUserController);
+
+const loginUserController = async (req, res) => {
   const session = await loginUser(req.body);
 
-  setupResponse(res, session);
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
+
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
 
   res.json({
     status: 200,
@@ -46,13 +53,24 @@ export const loginUserController = async (req, res) => {
   });
 };
 
-export const refreshController = async (req, res) => {
+export const loginUserCtrl = ctrlWrapper(loginUserController);
+
+const refreshController = async (req, res) => {
+  const { refreshToken, sessionId } = req.cookies;
+
   const session = await refreshSession({
-    sessionId: req.cookies.sessionId,
-    refreshToken: req.cookies.refreshToken,
+    refreshToken,
+    sessionId,
   });
 
-  setupResponse(res, session);
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
 
   res.json({
     status: 200,
@@ -63,13 +81,16 @@ export const refreshController = async (req, res) => {
   });
 };
 
-export const logoutController = async (req, res) => {
-  await logoutUser({
-    sessionId: req.cookies.sessionId,
-    refreshToken: req.cookies.refreshToken,
-  });
+export const refreshCtrl = ctrlWrapper(refreshController);
+
+const logoutController = async (req, res) => {
+  const { sessionId } = req.cookies;
+  await logoutUser(sessionId);
+
   res.clearCookie('sessionId');
   res.clearCookie('refreshToken');
 
   res.status(204).send();
 };
+
+export const logoutCtrl = ctrlWrapper(logoutController);

@@ -3,8 +3,9 @@ import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import { randomBytes } from 'crypto';
 
-import { User } from '../db/models/user.js';
-import { Session } from '../db/models/session.js';
+import { UserCollection } from '../db/models/user.js';
+import { SessionCollection } from '../db/models/session.js';
+import { env } from '../utils/env.js';
 
 import {
   FIFTEEN_MINUTES,
@@ -12,82 +13,83 @@ import {
   ROLES,
 } from '../constants/index.js';
 
-const createSession = () => {
-  const accessToken = jwt.sign({ }, process.env.JWT_SECRET, {
-    expiresIn: FIFTEEN_MINUTES,
+const createSession = (userId) => {
+  const accessToken = jwt.sign({ userId }, env('JWT_SECRET'), {
+    expiresIn: '15m',
   });
-  const refreshToken = jwt.sign({ }, process.env.JWT_SECRET, {
-    expiresIn: THIRTY_DAYS,
+  const refreshToken = jwt.sign({ userId }, env('JWT_SECRET'), {
+    expiresIn: '30d',
   });
 
   return {
     accessToken,
     refreshToken,
-    accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
-    refreshTokenValidUntil: new Date(Date.now() + THIRTY_DAYS),
+    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   };
 };
 
 export const registerUser = async (payload) => {
-    const user = await User.findOne({ email: payload.email });
-    if (user) {
-        throw createHttpError(409, 'Email in use');
-    }
-    const hashedPassword = await bcrypt.hash(payload.password, 10);
-    const newUser = await User.create({
-        ...payload,
-        password: hashedPassword,
-    });
-    return newUser;
+  const user = await UserCollection.findOne({ email: payload.email });
+  if (user) {
+    throw createHttpError(409, 'Email in use');
+  }
+
+  const hashedPassword = await bcrypt.hash(payload.password, 10);
+
+  return await UserCollection.create({
+    ...payload,
+    password: hashedPassword,
+  });
 };
 
 export const loginUser = async (payload) => {
-    const user = await User.findOne({ email: payload.email });
-    if (!user) {
-        throw createHttpError(401, 'Unauthorized');
-    }
-    const isEqual = await bcrypt.compare(payload.password, user.password);
-    if (!isEqual) {
-        throw createHttpError(401, 'Unauthorized');
-    }
+  const user = await UserCollection.findOne({ email: payload.email });
+  if (!user) {
+    throw createHttpError(401, 'Unauthorized');
+  }
 
-    await Session.deleteOne({ userId: user._id });
+  const isEqual = await bcrypt.compare(payload.password, user.password);
+  if (!isEqual) {
+    throw createHttpError(401, 'Unauthorized');
+  }
 
-    const newSession = createSession();
+  await SessionCollection.deleteOne({ userId: user._id });
 
-    return await Session.create({
-        userId: user._id,
-        ...newSession,
-    });
+  const session = createSession(user._id);
+
+  return await SessionCollection.create({
+    userId: user._id,
+    ...session,
+  });
 };
 
 export const refreshSession = async ({ sessionId, refreshToken }) => {
-    const session = await Session.findOne({
-        _id: sessionId,
-        refreshToken,
-    });
+  const session = await SessionCollection.findOne({
+    _id: sessionId,
+    refreshToken,
+  });
 
-    if (!session) {
-        throw createHttpError(401, 'Session not found');
-    }
+  if (!session) {
+    throw createHttpError(401, 'Session not found');
+  }
 
-    const isRefreshTokenExpired =
-        new Date() > new Date(session.refreshTokenValidUntil);
+  const isTokenExpired =
+    new Date() > new Date(session.refreshTokenValidUntil);
+  if (isTokenExpired) {
+    throw createHttpError(401, 'Refresh token expired');
+  }
 
-    if (isRefreshTokenExpired) {
-        throw createHttpError(401, 'Refresh token expired');
-    }
+  await SessionCollection.deleteOne({ _id: sessionId });
 
-    await Session.deleteOne({ _id: sessionId });
+  const newSession = createSession(session.userId);
 
-    const newSession = createSession();
-
-    return await Session.create({
-        userId: session.userId,
-        ...newSession,
-    });
+  return await SessionCollection.create({
+    userId: session.userId,
+    ...newSession,
+  });
 };
 
-export const logoutUser = async ({ sessionId, refreshToken }) => {
-    await Session.deleteOne({ _id: sessionId, refreshToken });
+export const logoutUser = async (sessionId) => {
+  await SessionCollection.deleteOne({ _id: sessionId });
 };
