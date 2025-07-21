@@ -1,4 +1,5 @@
 import { ContactCollection } from '../db/models/contact.js';
+import createHttpError from 'http-errors';
 
 export const getAllcontacts = async () => {
   const contacts = await ContactCollection.find();
@@ -7,6 +8,9 @@ export const getAllcontacts = async () => {
 
 export const getContactById = async (id) => {
   const contact = await ContactCollection.findById(id);
+  if (!contact) {
+    throw createHttpError(404, 'Contact not found');
+  }
   return contact;
 };
 
@@ -20,10 +24,16 @@ export const updateContact = async (id, payload, options = {}) => {
     new: true,
     ...options,
   });
+  if (!result) {
+    throw createHttpError(404, 'Contact not found');
+  }
   return result;
 };
 
 export const deleteContact = async (id) => {
   const result = await ContactCollection.findByIdAndDelete(id);
+  if (!result) {
+    throw createHttpError(404, 'Contact not found');
+  }
   return result;
 };
