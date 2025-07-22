@@ -3,6 +3,8 @@ import {
   loginUser,
   refreshSession,
   logoutUser,
+  sendResetEmail,
+  resetPassword,
 } from '../services/auth.js';
 
 import { THIRTY_DAYS } from '../constants/index.js';
@@ -54,6 +56,29 @@ const loginUserController = async (req, res) => {
 };
 
 export const loginUserCtrl = ctrlWrapper(loginUserController);
+
+const sendResetEmailController = async (req, res) => {
+  await sendResetEmail(req.body.email);
+
+  res.json({
+    status: 200,
+    message: 'Reset password email has been successfully sent.',
+    data: {},
+  });
+};
+
+export const sendResetEmailCtrl = ctrlWrapper(sendResetEmailController);
+
+const resetPasswordController = async (req, res) => {
+  await resetPassword(req.body);
+  res.json({
+    status: 200,
+    message: 'Password has been successfully reset.',
+    data: {},
+  });
+};
+
+export const resetPasswordCtrl = ctrlWrapper(resetPasswordController);
 
 const refreshController = async (req, res) => {
   const { refreshToken, sessionId } = req.cookies;

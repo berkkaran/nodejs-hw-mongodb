@@ -7,6 +7,10 @@ import {
   updateContact,
 } from '../services/contacts.js';
 import createHttpError from 'http-errors';
+import {
+  createContactSchema,
+  updateContactSchema,
+} from '../utils/validationSchemas.js';
 
 export const getAllContactsController = async (req, res) => {
   const contacts = await getAllContacts(req.user._id);
@@ -33,7 +37,11 @@ export const getContactByIdController = async (req, res) => {
 };
 
 export const createContactController = async (req, res) => {
-  const contact = await createContact(req.body, req.user._id);
+  const { error } = createContactSchema.validate(req.body);
+  if (error) {
+    throw createHttpError(400, error.message);
+  }
+  const contact = await createContact(req.body, req.user._id, req.file);
   res.status(201).json({
     status: 201,
     message: 'Successfully created a contact!',
@@ -52,8 +60,12 @@ export const deleteContactController = async (req, res) => {
 };
 
 export const upsertContactController = async (req, res) => {
-    const { contactId } = req.params;
-    const result = await upsertContact(contactId, req.user._id, req.body, {
+  const { error } = updateContactSchema.validate(req.body);
+  if (error) {
+    throw createHttpError(400, error.message);
+  }
+  const { contactId } = req.params;
+  const result = await upsertContact(contactId, req.user._id, req.body, req.file, {
         upsert: true,
     });
 
@@ -70,8 +82,12 @@ export const upsertContactController = async (req, res) => {
 };
 
 export const patchContactController = async (req, res) => {
-    const { contactId } = req.params;
-    const result = await updateContact(contactId, req.user._id, req.body);
+  const { error } = updateContactSchema.validate(req.body);
+  if (error) {
+    throw createHttpError(400, error.message);
+  }
+  const { contactId } = req.params;
+  const result = await updateContact(contactId, req.user._id, req.body, req.file);
 
     if (!result) {
         throw createHttpError(404, 'Contact not found');

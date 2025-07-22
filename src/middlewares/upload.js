@@ -10,17 +10,11 @@ cloudinary.config({
   api_secret: env('CLOUDINARY_SECRET'),
 });
 
-const storage = multer.diskStorage({
-  destination: path.join(process.cwd(), 'temp'),
-  filename: (req, file, cb) => {
-    const extname = path.extname(file.originalname);
-    const basename = path.basename(file.originalname, extname);
-    const suffix = Date.now();
-    cb(null, `${basename}-${suffix}${extname}`);
-  },
-});
+const storage = multer.memoryStorage();
 
-const upload = multer({ storage });
+export const upload = multer({
+  storage,
+});
 
 const uploadToCloudinary = async (req, res, next) => {
   if (!req.file) {

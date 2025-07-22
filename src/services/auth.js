@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto';
 import { UserCollection } from '../db/models/user.js';
 import { SessionCollection } from '../db/models/session.js';
 import { env } from '../utils/env.js';
+import { sendEmail } from '../utils/sendMail.js';
 
 import {
   FIFTEEN_MINUTES,
@@ -62,6 +63,69 @@ export const loginUser = async (payload) => {
     userId: user._id,
     ...session,
   });
+};
+
+export const sendResetEmail = async (email) => {
+  const user = await UserCollection.findOne({ email });
+  if (!user) {
+    throw createHttpError(404, 'User not found!');
+  }
+
+  const resetToken = jwt.sign(
+    { sub: user._id, email: user.email },
+    env('JWT_SECRET'),
+    {
+      expiresIn: '5m',
+    },
+  );
+
+  const resetLink = `${env(
+    'APP_DOMAIN',
+  )}/reset-password?token=${encodeURIComponent(resetToken)}`;
+
+  try {
+    await sendEmail({
+      to: email,
+      subject: 'Reset your password',
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p><p>Alternatively, copy and paste this link into your browser:</p><p>${resetLink}</p>`,
+    });
+  } catch (error) {
+    console.log(error);
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
+};
+
+export const resetPassword = async ({ token, password }) => {
+  let decoded;
+  try {
+    decoded = jwt.verify(token, env('JWT_SECRET'));
+  } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError) {
+      throw createHttpError(401, 'Token is expired or invalid.');
+    }
+    throw err;
+  }
+
+  const user = await UserCollection.findOne({
+    email: decoded.email,
+    _id: decoded.sub,
+  });
+
+  if (!user) {
+    throw createHttpError(404, 'User not found!');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await UserCollection.updateOne(
+    { _id: user._id },
+    { password: hashedPassword },
+  );
+
+  await SessionCollection.deleteMany({ userId: user._id });
 };
 
 export const refreshSession = async ({ sessionId, refreshToken }) => {
