@@ -8,7 +8,7 @@ import {
 } from '../services/contacts.js';
 import createHttpError from 'http-errors';
 
-export const getContactsController = async (req, res) => {
+export const getAllContactsController = async (req, res) => {
   const contacts = await getAllContacts(req.user._id);
   res.json({
     status: 200,

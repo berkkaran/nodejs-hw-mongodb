@@ -30,7 +30,25 @@ export const upsertContact = async (contactId, userId, payload, options = {}) =>
             ...options,
         }
     );
-    return result;
+
+    if (result) {
+        return {
+            contact: result,
+            isNew: false,
+        };
+    }
+
+    if (options.upsert) {
+        const newContact = await Contact.create({
+            ...payload,
+            _id: contactId,
+            userId,
+        });
+        return {
+            contact: newContact,
+            isNew: true,
+        };
+    }
 };
 
 export const updateContact = async (contactId, userId, payload) => {
